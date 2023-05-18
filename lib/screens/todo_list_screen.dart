@@ -36,6 +36,15 @@ class _ToDoListState extends State<ToDoList> {
   // Add a new to-do item
   void _addTodoItem() {
     String todoItem = _textFieldController.text;
+    bool hasNumbers = RegExp(r'\d').hasMatch(todoItem);
+    if (hasNumbers) {
+      // Display an error message or show a snackbar indicating that numbers are not allowed
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Numbers are not allowed in the to-do task."),
+        ),
+      );
+    }
     if (todoItem.isNotEmpty) {
       setState(() {
         _todoItems.add(todoItem);
@@ -148,33 +157,61 @@ class _ToDoListState extends State<ToDoList> {
           ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: _todoItems.length,
-        itemBuilder: (BuildContext context, int index) {
-          return ListTile(
-            title: Text(_todoItems[index]),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  color: Colors.green,
-                  icon: const Icon(Icons.edit),
-                  onPressed: () {
-                    _editTodoItem(index);
-                  },
+      body: _todoItems.isEmpty
+          ? const Center(
+              child: Text(
+                "No To Do Task Added",
+                style: TextStyle(
+                  fontSize: 20,
                 ),
-                IconButton(
-                  color: Colors.red,
-                  icon: const Icon(Icons.delete),
-                  onPressed: () {
-                    _removeTodoItem(index);
-                  },
+              ),
+            )
+          : Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextFormField(
+                    onChanged: (value) {},
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(),
+                      ),
+                      hintText: 'Search Task Here',
+                      prefixIcon: Icon(Icons.search),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: _todoItems.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      return ListTile(
+                        title: Text(_todoItems[index]),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              color: Colors.green,
+                              icon: const Icon(Icons.edit),
+                              onPressed: () {
+                                _editTodoItem(index);
+                              },
+                            ),
+                            IconButton(
+                              color: Colors.red,
+                              icon: const Icon(Icons.delete),
+                              onPressed: () {
+                                _removeTodoItem(index);
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
-          );
-        },
-      ),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
         onPressed: () {
