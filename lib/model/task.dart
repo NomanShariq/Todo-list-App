@@ -1,15 +1,11 @@
-// import 'package:flutter/scheduler.dart';
+class ToDoItem {
+  String title;
+  bool isCompleted;
+  DateTime dueDate;
 
-// class TodoItem {
-//   String title;
-//   String description;
-//   DateTime dueDate;
-//   Priority priority;
-
-//   TodoItem({
-//     required this.title,
-//     this.description = "",
-//     required this.dueDate,
-//     this.priority = Priority.low,
-//   });
-// }
+  ToDoItem({
+    required this.title,
+    this.isCompleted = false,
+    required this.dueDate,
+  });
+}
