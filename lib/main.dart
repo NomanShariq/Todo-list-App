@@ -12,19 +12,16 @@ class ToDoListApp extends StatefulWidget {
 }
 
 class _ToDoListAppState extends State<ToDoListApp> {
-  AppTheme _currentTheme = AppTheme.Light;
 
-  void _toggleTheme() {
-    setState(() {
-      _currentTheme = _currentTheme == AppTheme.Light ? AppTheme.Dark : AppTheme.Light;
-    });
-  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'To-Do List',
-      theme: _currentTheme == AppTheme.Light ? lightTheme : darkTheme,
+      themeMode: ThemeMode.system,
+      theme: myThemes.lightTheme,
+      darkTheme: myThemes.darkTheme,
       home: ToDoList(),
     );
   }

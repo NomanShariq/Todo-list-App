@@ -11,6 +11,8 @@ class ToDoList extends StatefulWidget {
 class _ToDoListState extends State<ToDoList> {
   List<String> _todoItems = [];
   TextEditingController _textFieldController = TextEditingController();
+  TextEditingController searchController = TextEditingController();
+  String search = '';
 
   @override
   void initState() {
@@ -171,7 +173,13 @@ class _ToDoListState extends State<ToDoList> {
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextFormField(
-                    onChanged: (value) {},
+                    controller: searchController,
+                    onChanged: (String? value) {
+                      print(value);
+                      setState(() {
+                        search = value.toString();
+                      });
+                    },
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(
                         borderSide: BorderSide(),
@@ -185,28 +193,58 @@ class _ToDoListState extends State<ToDoList> {
                   child: ListView.builder(
                     itemCount: _todoItems.length,
                     itemBuilder: (BuildContext context, int index) {
-                      return ListTile(
-                        title: Text(_todoItems[index]),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              color: Colors.green,
-                              icon: const Icon(Icons.edit),
-                              onPressed: () {
-                                _editTodoItem(index);
-                              },
-                            ),
-                            IconButton(
-                              color: Colors.red,
-                              icon: const Icon(Icons.delete),
-                              onPressed: () {
-                                _removeTodoItem(index);
-                              },
-                            ),
-                          ],
-                        ),
-                      );
+                      late String position = _todoItems[index].toString();
+                      if (searchController.text.isEmpty) {
+                        return ListTile(
+                          title: Text(_todoItems[index]),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                color: Colors.green,
+                                icon: const Icon(Icons.edit),
+                                onPressed: () {
+                                  _editTodoItem(index);
+                                },
+                              ),
+                              IconButton(
+                                color: Colors.red,
+                                icon: const Icon(Icons.delete),
+                                onPressed: () {
+                                  _removeTodoItem(index);
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      } else if (position
+                          .toLowerCase()
+                          .contains(searchController.text.toLowerCase())) {
+                        return ListTile(
+                          title: Text(_todoItems[index]),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                color: Colors.green,
+                                icon: const Icon(Icons.edit),
+                                onPressed: () {
+                                  _editTodoItem(index);
+                                },
+                              ),
+                              IconButton(
+                                color: Colors.red,
+                                icon: const Icon(Icons.delete),
+                                onPressed: () {
+                                  _removeTodoItem(index);
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      } else {
+                        return Container();
+                      }
                     },
                   ),
                 ),

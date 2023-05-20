@@ -29,17 +29,17 @@ class ToDoItemDialog extends StatelessWidget {
       actions: <Widget>[
         ElevatedButton(
           onPressed: () {
+            Navigator.pop(context); // Close the dialog without saving
+          },
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () {
             String todoItem = textFieldController.text;
             onSave(todoItem);
             // Call the onSave callback with the entered text
           },
           child: const Text('Save'),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            Navigator.pop(context); // Close the dialog without saving
-          },
-          child: const Text('Cancel'),
         ),
       ],
     );

@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
 
-enum AppTheme {
-  Light,
-  Dark,
+class myThemes {
+  static final darkTheme = ThemeData(
+    scaffoldBackgroundColor: Colors.black,
+    colorScheme: const ColorScheme.dark(),
+  );
+  static final lightTheme = ThemeData(
+    scaffoldBackgroundColor: Colors.white,
+    colorScheme: const ColorScheme.light(),
+  );
 }
-
-final lightTheme = ThemeData(
-  // Define your light theme data here
-  brightness: Brightness.light,
-  // Other style properties
-);
-
-final darkTheme = ThemeData(
-  // Define your dark theme data here
-  brightness: Brightness.dark,
-  // Other style properties
-);
