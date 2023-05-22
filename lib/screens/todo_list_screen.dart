@@ -9,7 +9,7 @@ class ToDoList extends StatefulWidget {
 }
 
 class _ToDoListState extends State<ToDoList> {
-  List<String> _todoItems = [];
+  List<Map<String, dynamic>> _todoItems = [];
   TextEditingController _textFieldController = TextEditingController();
   TextEditingController searchController = TextEditingController();
   String search = '';
@@ -24,21 +24,29 @@ class _ToDoListState extends State<ToDoList> {
   void _loadTodoItems() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String> todoItems = prefs.getStringList('todoItems') ?? [];
+    List<Map<String, dynamic>> items = [];
+    for (String item in todoItems) {
+      items.add({'task': item, 'date': null});
+    }
     setState(() {
-      _todoItems = todoItems;
+      _todoItems = items;
     });
   }
 
   // Save the to-do items to shared preferences
   void _saveTodoItems() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList('todoItems', _todoItems);
+    List<String> items = [];
+    for (var item in _todoItems) {
+      items.add(item['task']);
+    }
+    await prefs.setStringList('todoItems', items);
   }
 
   // Add a new to-do item
-  void _addTodoItem() {
-    String todoItem = _textFieldController.text;
-    bool hasNumbers = RegExp(r'\d').hasMatch(todoItem);
+  void _addTodoItem(
+      String newTodoItem, DateTime? selectedDate, TimeOfDay? selectedTime) {
+    bool hasNumbers = RegExp(r'\d').hasMatch(newTodoItem);
     if (hasNumbers) {
       // Display an error message or show a snackbar indicating that numbers are not allowed
       ScaffoldMessenger.of(context).showSnackBar(
@@ -47,9 +55,13 @@ class _ToDoListState extends State<ToDoList> {
         ),
       );
     }
-    if (todoItem.isNotEmpty) {
+    if (newTodoItem.isNotEmpty) {
       setState(() {
-        _todoItems.add(todoItem);
+        _todoItems.add({
+          'task': newTodoItem,
+          'date': selectedDate,
+          'time': selectedTime,
+        });
       });
       _textFieldController.clear();
       _saveTodoItems();
@@ -81,16 +93,19 @@ class _ToDoListState extends State<ToDoList> {
 
   // Edit a to-do item
   void _editTodoItem(int index) {
-    _textFieldController.text = _todoItems[index];
+    _textFieldController.text = _todoItems[index]['task'];
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return ToDoItemDialog(
           title: 'Edit Task',
           textFieldController: _textFieldController,
-          onSave: (newTodoItem) {
-            _todoItems[index] = newTodoItem;
-            setState(() {});
+          onSave: (newTodoItem, selectedDate, selectedTime) {
+            setState(() {
+              _todoItems[index]['task'] = newTodoItem;
+              _todoItems[index]['date'] = selectedDate;
+              _todoItems[index]['time'] = selectedTime;
+            });
             Navigator.pop(context);
             _saveTodoItems();
             ScaffoldMessenger.of(context).showSnackBar(
@@ -147,8 +162,8 @@ class _ToDoListState extends State<ToDoList> {
                   return ToDoItemDialog(
                     title: 'Add Task',
                     textFieldController: _textFieldController,
-                    onSave: (newTodoItem) {
-                      _addTodoItem();
+                    onSave: (newTodoItem, selectedDate, selectedTime) {
+                      _addTodoItem(newTodoItem, selectedDate, selectedTime);
                       Navigator.pop(context);
                     },
                   );
@@ -174,10 +189,9 @@ class _ToDoListState extends State<ToDoList> {
                   padding: const EdgeInsets.all(8.0),
                   child: TextFormField(
                     controller: searchController,
-                    onChanged: (String? value) {
-                      print(value);
+                    onChanged: (String value) {
                       setState(() {
-                        search = value.toString();
+                        search = value;
                       });
                     },
                     decoration: const InputDecoration(
@@ -193,35 +207,22 @@ class _ToDoListState extends State<ToDoList> {
                   child: ListView.builder(
                     itemCount: _todoItems.length,
                     itemBuilder: (BuildContext context, int index) {
-                      late String position = _todoItems[index].toString();
-                      if (searchController.text.isEmpty) {
+                      String task = _todoItems[index]['task'];
+                      DateTime? date = _todoItems[index]['date'];
+                      TimeOfDay? time = _todoItems[index]['time'];
+
+                      if (searchController.text.isEmpty ||
+                          task.toLowerCase().contains(searchController.text.toLowerCase())) {
                         return ListTile(
-                          title: Text(_todoItems[index]),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                color: Colors.green,
-                                icon: const Icon(Icons.edit),
-                                onPressed: () {
-                                  _editTodoItem(index);
-                                },
-                              ),
-                              IconButton(
-                                color: Colors.red,
-                                icon: const Icon(Icons.delete),
-                                onPressed: () {
-                                  _removeTodoItem(index);
-                                },
-                              ),
-                            ],
-                          ),
-                        );
-                      } else if (position
-                          .toLowerCase()
-                          .contains(searchController.text.toLowerCase())) {
-                        return ListTile(
-                          title: Text(_todoItems[index]),
+                          title: Text(task),
+                          subtitle: date != null
+                              ? Row(
+                                  children: [
+                                    Text('Date: ${date.toString()}'),
+                                    Text('Time: ${time!.format(context)}'),
+                                  ],
+                                )
+                              : null,
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -259,8 +260,8 @@ class _ToDoListState extends State<ToDoList> {
               return ToDoItemDialog(
                 title: 'Add Task',
                 textFieldController: _textFieldController,
-                onSave: (newTodoItem) {
-                  _addTodoItem();
+                onSave: (newTodoItem, selectedDate, selectedTime) {
+                  _addTodoItem(newTodoItem, selectedDate, selectedTime);
                   Navigator.pop(context);
                 },
               );
