@@ -12,19 +12,15 @@ class ToDoListApp extends StatefulWidget {
 }
 
 class _ToDoListAppState extends State<ToDoListApp> {
-
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'To-Do List',
       themeMode: ThemeMode.system,
-      theme: myThemes.lightTheme,
+      theme: ThemeData(fontFamily: 'Raleway'),
       darkTheme: myThemes.darkTheme,
       home: ToDoList(),
     );
   }
 }
-
-

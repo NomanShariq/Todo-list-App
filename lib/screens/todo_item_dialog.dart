@@ -82,6 +82,13 @@ class _ToDoItemDialogState extends State<ToDoItemDialog> {
       content: TextFormField(
         controller: widget.textFieldController,
         validator: _validateTextField,
+        decoration: const InputDecoration(
+          border: OutlineInputBorder(
+            borderSide: BorderSide(),
+          ),
+          hintText: 'Add Task Here',
+          prefixIcon: Icon(Icons.add_task),
+        ),
       ),
       actions: <Widget>[
         Column(
@@ -128,7 +135,7 @@ class _ToDoItemDialogState extends State<ToDoItemDialog> {
                 Text(
                   _selectedDate == null
                       ? 'No Date Chosen'
-                      : 'Date Picked ${DateFormat.yMd().format(_selectedDate!)}',
+                      : 'Date Picked ${DateFormat.yMd().format(_selectedDate!).trimRight()}',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(

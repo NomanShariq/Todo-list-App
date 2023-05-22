@@ -151,7 +151,6 @@ class _ToDoListState extends State<ToDoList> {
         centerTitle: true,
         title: const Text(
           'To-Do List',
-          style: TextStyle(fontFamily: 'Raleway'),
         ),
         actions: [
           IconButton(
@@ -180,6 +179,7 @@ class _ToDoListState extends State<ToDoList> {
                 "No To Do Task Added",
                 style: TextStyle(
                   fontSize: 20,
+                  fontFamily: 'Raleway',
                 ),
               ),
             )
@@ -212,35 +212,90 @@ class _ToDoListState extends State<ToDoList> {
                       TimeOfDay? time = _todoItems[index]['time'];
 
                       if (searchController.text.isEmpty ||
-                          task.toLowerCase().contains(searchController.text.toLowerCase())) {
-                        return ListTile(
-                          title: Text(task),
-                          subtitle: date != null
-                              ? Row(
-                                  children: [
-                                    Text('Date: ${date.toString()}'),
-                                    Text('Time: ${time!.format(context)}'),
-                                  ],
-                                )
-                              : null,
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                color: Colors.green,
-                                icon: const Icon(Icons.edit),
-                                onPressed: () {
-                                  _editTodoItem(index);
-                                },
+                          task
+                              .toLowerCase()
+                              .contains(searchController.text.toLowerCase())) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                                border: Border.all(
+                              color: Colors.grey,
+                              width: 1,
+                            )),
+                            child: ListTile(
+                              title: Text(task,
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    color: Colors.white,
+                                  )),
+                              subtitle: date != null
+                                  ? Row(
+                                      children: [
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            const SizedBox(
+                                              height: 10.0,
+                                            ),
+                                            RichText(
+                                              text: TextSpan(
+                                                  text: 'Date: ',
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                  ),
+                                                  children: <TextSpan>[
+                                                    TextSpan(
+                                                        text: date.toString(),
+                                                        style: const TextStyle(
+                                                          color: Colors.grey,
+                                                        ))
+                                                  ]),
+                                            ),
+                                            const SizedBox(
+                                              height: 10.0,
+                                            ),
+                                            RichText(
+                                              text: TextSpan(
+                                                  text: 'Time: ',
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                  ),
+                                                  children: <TextSpan>[
+                                                    TextSpan(
+                                                        text:
+                                                            '${time!.format(context)}',
+                                                        style: const TextStyle(
+                                                          color: Colors.grey,
+                                                        ))
+                                                  ]),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    )
+                                  : null,
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    color: Colors.green,
+                                    icon: const Icon(Icons.edit),
+                                    onPressed: () {
+                                      _editTodoItem(index);
+                                    },
+                                  ),
+                                  IconButton(
+                                    color: Colors.red,
+                                    icon: const Icon(Icons.delete),
+                                    onPressed: () {
+                                      _removeTodoItem(index);
+                                    },
+                                  ),
+                                ],
                               ),
-                              IconButton(
-                                color: Colors.red,
-                                icon: const Icon(Icons.delete),
-                                onPressed: () {
-                                  _removeTodoItem(index);
-                                },
-                              ),
-                            ],
+                            ),
                           ),
                         );
                       } else {
@@ -252,6 +307,7 @@ class _ToDoListState extends State<ToDoList> {
               ],
             ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.white,
         child: const Icon(Icons.add),
         onPressed: () {
           showDialog(
@@ -269,6 +325,7 @@ class _ToDoListState extends State<ToDoList> {
           );
         },
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }
