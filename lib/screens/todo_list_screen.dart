@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'todo_item_dialog.dart';
@@ -91,6 +92,17 @@ class _ToDoListState extends State<ToDoList> {
     }
   }
 
+  String _formatTime(TimeOfDay time) {
+    final now = DateTime.now();
+    return DateTime(
+      now.year,
+      now.month,
+      now.day,
+      time.hour,
+      time.minute,
+    ).toString().split(' ')[1].substring(0, 5);
+  }
+
   // Edit a to-do item
   void _editTodoItem(int index) {
     _textFieldController.text = _todoItems[index]['task'];
@@ -111,7 +123,7 @@ class _ToDoListState extends State<ToDoList> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Your task has been edited'),
-                backgroundColor: Colors.red,
+                backgroundColor: Colors.green,
                 behavior: SnackBarBehavior.floating,
                 margin: EdgeInsets.only(
                   left: 10,
@@ -247,7 +259,9 @@ class _ToDoListState extends State<ToDoList> {
                                                   ),
                                                   children: <TextSpan>[
                                                     TextSpan(
-                                                        text: date.toString(),
+                                                        text: DateFormat.yMd()
+                                                            .format(date)
+                                                            .toString(),
                                                         style: const TextStyle(
                                                           color: Colors.grey,
                                                         ))
@@ -265,7 +279,7 @@ class _ToDoListState extends State<ToDoList> {
                                                   children: <TextSpan>[
                                                     TextSpan(
                                                         text:
-                                                            '${time!.format(context)}',
+                                                            '${_formatTime(time!)}',
                                                         style: const TextStyle(
                                                           color: Colors.grey,
                                                         ))

@@ -62,11 +62,12 @@ class _ToDoItemDialogState extends State<ToDoItemDialog> {
         _selectedTime!.hour,
         _selectedTime!.minute,
       );
-      final formattedTime = DateFormat.jm().format(selectedDateTime);
+      final formattedTime = DateFormat.jms().format(selectedDateTime);
       return formattedTime;
     }
     return 'No Time Chosen';
   }
+  
 
   String? _validateTextField(String? value) {
     if (value == null || value.isEmpty) {
