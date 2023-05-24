@@ -94,13 +94,16 @@ class _ToDoListState extends State<ToDoList> {
 
   String _formatTime(TimeOfDay time) {
     final now = DateTime.now();
-    return DateTime(
+    final dateTime = DateTime(
       now.year,
       now.month,
       now.day,
       time.hour,
       time.minute,
-    ).toString().split(' ')[1].substring(0, 5);
+    );
+    final format = DateFormat.jm(); // Format with AM/PM
+
+    return format.format(dateTime);
   }
 
   // Edit a to-do item
@@ -155,6 +158,7 @@ class _ToDoListState extends State<ToDoList> {
       ),
     ); // Save the updated to-do items
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -279,7 +283,7 @@ class _ToDoListState extends State<ToDoList> {
                                                   children: <TextSpan>[
                                                     TextSpan(
                                                         text:
-                                                            '${_formatTime(time!)}',
+                                                            '${time != null ? _formatTime(time) : ''}',
                                                         style: const TextStyle(
                                                           color: Colors.grey,
                                                         ))

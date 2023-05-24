@@ -22,16 +22,21 @@ class _ToDoItemDialogState extends State<ToDoItemDialog> {
   TimeOfDay? _selectedTime;
   TimeOfDay timeOfDay = TimeOfDay.now();
 
-  void _presentDatePicker() {
+  
+  void presentDatePicker() {
+    // Show a date picker dialog.
     showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2022),
-      lastDate: DateTime.now(),
+      initialDate: _selectedDate ?? DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2101),
     ).then((pickedDate) {
+      // If the user cancels the dialog, return.
       if (pickedDate == null) {
         return;
       }
+
+      // Update the _selectedDate state variable.
       setState(() {
         _selectedDate = pickedDate;
       });
@@ -67,7 +72,6 @@ class _ToDoItemDialogState extends State<ToDoItemDialog> {
     }
     return 'No Time Chosen';
   }
-  
 
   String? _validateTextField(String? value) {
     if (value == null || value.isEmpty) {
@@ -144,7 +148,7 @@ class _ToDoItemDialogState extends State<ToDoItemDialog> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    _presentDatePicker();
+                    presentDatePicker();
                   },
                   style: ButtonStyle(
                     backgroundColor:
