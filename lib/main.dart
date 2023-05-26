@@ -11,7 +11,7 @@ void main() {
   const AndroidInitializationSettings androidInitializationSettings =
       AndroidInitializationSettings('@mipmap/ic_launcher');
   final InitializationSettings initializationSettings =
-      InitializationSettings(android: androidInitializationSettings);
+      const InitializationSettings(android: androidInitializationSettings);
   notificationsPlugin.initialize(initializationSettings);
   runApp(
     ToDoListApp());

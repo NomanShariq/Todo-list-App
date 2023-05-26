@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'todo_item_dialog.dart';
 
 class ToDoList extends StatefulWidget {
+  const ToDoList({super.key});
+
   @override
   _ToDoListState createState() => _ToDoListState();
 }
@@ -14,11 +16,18 @@ class _ToDoListState extends State<ToDoList> {
   TextEditingController _textFieldController = TextEditingController();
   TextEditingController searchController = TextEditingController();
   String search = '';
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
 
   @override
   void initState() {
     super.initState();
     _loadTodoItems();
+    var initializationSettingsAndroid =
+        const AndroidInitializationSettings('@mipmap/logo');
+    var initializationSettings =
+        InitializationSettings(android: initializationSettingsAndroid);
+    flutterLocalNotificationsPlugin.initialize(initializationSettings);
   }
 
   // Load the to-do items from shared preferences
@@ -27,7 +36,26 @@ class _ToDoListState extends State<ToDoList> {
     List<String> todoItems = prefs.getStringList('todoItems') ?? [];
     List<Map<String, dynamic>> items = [];
     for (String item in todoItems) {
-      items.add({'task': item, 'date': null});
+      List<String> parts = item.split('||');
+      if (parts.length == 3) {
+        DateTime? date;
+        if (parts[1].isNotEmpty) {
+          date = DateTime.parse(parts[1]);
+        }
+        TimeOfDay? time;
+        if (parts[2].isNotEmpty) {
+          List<String> timeParts = parts[2].split(':');
+          time = TimeOfDay(
+            hour: int.parse(timeParts[0]),
+            minute: int.parse(timeParts[1]),
+          );
+        }
+        items.add({
+          'task': parts[0],
+          'date': date,
+          'time': time,
+        });
+      }
     }
     setState(() {
       _todoItems = items;
@@ -39,7 +67,15 @@ class _ToDoListState extends State<ToDoList> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String> items = [];
     for (var item in _todoItems) {
-      items.add(item['task']);
+      String task = item['task'];
+      DateTime? date = item['date'];
+      TimeOfDay? time = item['time'];
+
+      String dateString = date != null ? date.toIso8601String() : '';
+      String timeString = time != null ? '${time.hour}:${time.minute}' : '';
+
+      String combined = '$task||$dateString||$timeString';
+      items.add(combined);
     }
     await prefs.setStringList('todoItems', items);
   }
@@ -66,6 +102,7 @@ class _ToDoListState extends State<ToDoList> {
       });
       _textFieldController.clear();
       _saveTodoItems();
+      scheduleNotification(newTodoItem, selectedDate, selectedTime);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Task has been added'),
@@ -88,6 +125,42 @@ class _ToDoListState extends State<ToDoList> {
             right: 10,
           ),
         ),
+      );
+    }
+  }
+
+  // Schedule a notification
+  Future<void> scheduleNotification(
+      String title, DateTime? selectedDate, TimeOfDay? selectedTime) async {
+    if (selectedDate != null && selectedTime != null) {
+      DateTime scheduledDateTime = DateTime(
+        selectedDate.year,
+        selectedDate.month,
+        selectedDate.day,
+        selectedTime.hour,
+        selectedTime.minute,
+      );
+
+      if (scheduledDateTime.isBefore(DateTime.now())) {
+        // If the scheduled date and time have already passed, don't schedule the notification
+        return;
+      }
+
+      var androidPlatformChannelSpecifics = const AndroidNotificationDetails(
+        'channel_id', // Replace with your own channel ID
+        'Channel Name', // Replace with your own channel name
+        importance: Importance.high,
+        priority: Priority.high,
+      );
+      var platformChannelSpecifics =
+          NotificationDetails(android: androidPlatformChannelSpecifics);
+
+      await flutterLocalNotificationsPlugin.schedule(
+        0,
+        title,
+        'Please Complete YourTask Before Deadline',
+        scheduledDateTime,
+        platformChannelSpecifics,
       );
     }
   }
@@ -158,7 +231,6 @@ class _ToDoListState extends State<ToDoList> {
       ),
     ); // Save the updated to-do items
   }
-
 
   @override
   Widget build(BuildContext context) {
