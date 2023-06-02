@@ -158,7 +158,7 @@ class _ToDoListState extends State<ToDoList> {
       await flutterLocalNotificationsPlugin.schedule(
         0,
         title,
-        'Please Complete YourTask Before Deadline',
+        'Please Complete Your Task Before Deadline',
         scheduledDateTime,
         platformChannelSpecifics,
       );
