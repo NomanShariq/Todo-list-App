@@ -1,20 +1,26 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:todo_list_app/constants/routes.dart';
+import 'package:todo_list_app/screens/login_screen.dart';
+import 'package:todo_list_app/screens/signup_screen.dart';
+import 'firebase_options.dart';
 import 'model/theme.dart';
 import 'screens/todo_list_screen.dart';
+
 final FlutterLocalNotificationsPlugin notificationsPlugin =
     FlutterLocalNotificationsPlugin();
-void main() {
-    WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize the notification plugin
-  const AndroidInitializationSettings androidInitializationSettings =
-      AndroidInitializationSettings('@mipmap/ic_launcher');
-  final InitializationSettings initializationSettings =
-      const InitializationSettings(android: androidInitializationSettings);
-  notificationsPlugin.initialize(initializationSettings);
-  runApp(
-    ToDoListApp());
+late final FirebaseApp app;
+late final FirebaseAuth auth;
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  app = await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  runApp(ToDoListApp());
 }
 
 class ToDoListApp extends StatefulWidget {
@@ -31,7 +37,12 @@ class _ToDoListAppState extends State<ToDoListApp> {
       themeMode: ThemeMode.system,
       theme: ThemeData(fontFamily: 'Raleway'),
       darkTheme: myThemes.darkTheme,
-      home: ToDoList(),
+      home: const ToDoList(),
+      routes: {
+        loginRoute: (context) => const LogInScreen(),
+        signUpRoute: (context) => const SignUpScreen(),
+        homeScreenroute: (context) => const ToDoList(),
+      },
     );
   }
 }

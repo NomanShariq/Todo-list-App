@@ -1,8 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'todo_item_dialog.dart';
+import 'package:todo_list_app/constants/routes.dart';
+import '../widgets/todo_item_dialog.dart';
 
 class ToDoList extends StatefulWidget {
   const ToDoList({super.key});
@@ -19,8 +21,12 @@ class _ToDoListState extends State<ToDoList> {
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
+  // Display the user's email if available
+  String userEmail = ''; // Set the initial value to an empty string
+
   @override
   void initState() {
+    _updateUserEmail();
     super.initState();
     _loadTodoItems();
     var initializationSettingsAndroid =
@@ -28,6 +34,32 @@ class _ToDoListState extends State<ToDoList> {
     var initializationSettings =
         InitializationSettings(android: initializationSettingsAndroid);
     flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  }
+
+  Future<void> _updateUserEmail() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String name = user.displayName ?? '';
+      String email = user.email ?? '';
+
+      // If the name is not provided, try to extract it from the email
+      if (name.isEmpty) {
+        List<String> nameParts = email.split('@');
+        if (nameParts.length == 2) {
+          name = nameParts[0];
+          // Capitalize the first letter of the name (optional)
+          name = name[0].toUpperCase() + name.substring(1);
+        }
+      }
+
+      setState(() {
+        userEmail = name;
+      });
+    } else {
+      setState(() {
+        userEmail = '';
+      });
+    }
   }
 
   // Load the to-do items from shared preferences
@@ -232,13 +264,59 @@ class _ToDoListState extends State<ToDoList> {
     ); // Save the updated to-do items
   }
 
+  void _showLogoutConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Log Out'),
+          content: const Text('Are you sure you want to log out?'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('No'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+            ),
+            TextButton(
+              child: const Text('Yes'),
+              onPressed: () async {
+                await FirebaseAuth.instance.signOut();
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  loginRoute,
+                  (route) => false,
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        centerTitle: true,
-        title: const Text(
-          'To-Do List',
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Welcome,',
+              style: TextStyle(
+                fontSize: 16,
+              ),
+            ),
+            Text(
+              userEmail.isNotEmpty
+                  ? userEmail
+                  : 'Guest', // Show 'Guest' if userEmail is empty
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
         ),
         actions: [
           IconButton(
@@ -257,7 +335,21 @@ class _ToDoListState extends State<ToDoList> {
                 },
               );
             },
-            icon: const Icon(Icons.add),
+            icon: const Icon(
+              Icons.add,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 15.0),
+            child: GestureDetector(
+              onTap: () async {
+                _showLogoutConfirmationDialog();
+              },
+              child: const Icon(
+                Icons.more_vert,
+                size: 26.0,
+              ),
+            ),
           ),
         ],
       ),
