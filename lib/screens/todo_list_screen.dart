@@ -2,9 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todo_list_app/constants/routes.dart';
 import '../widgets/todo_item_dialog.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ToDoList extends StatefulWidget {
   const ToDoList({super.key});
@@ -28,12 +28,12 @@ class _ToDoListState extends State<ToDoList> {
   void initState() {
     _updateUserEmail();
     super.initState();
-    _loadTodoItems();
     var initializationSettingsAndroid =
         const AndroidInitializationSettings('@mipmap/logo');
     var initializationSettings =
         InitializationSettings(android: initializationSettingsAndroid);
     flutterLocalNotificationsPlugin.initialize(initializationSettings);
+    _loadTodoItems();
   }
 
   Future<void> _updateUserEmail() async {
@@ -62,104 +62,129 @@ class _ToDoListState extends State<ToDoList> {
     }
   }
 
-  // Load the to-do items from shared preferences
-  void _loadTodoItems() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> todoItems = prefs.getStringList('todoItems') ?? [];
+void _loadTodoItems() async {
+  User? user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    CollectionReference tasksCollection = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('tasks');
+
     List<Map<String, dynamic>> items = [];
-    for (String item in todoItems) {
-      List<String> parts = item.split('||');
-      if (parts.length == 3) {
-        DateTime? date;
-        if (parts[1].isNotEmpty) {
-          date = DateTime.parse(parts[1]);
-        }
+    await tasksCollection.get().then((querySnapshot) {
+      querySnapshot.docs.forEach((doc) {
+        String task = doc['task'];
+        DateTime? date =
+            doc['date'] != null ? DateTime.parse(doc['date']) : null;
         TimeOfDay? time;
-        if (parts[2].isNotEmpty) {
-          List<String> timeParts = parts[2].split(':');
+        if (doc['time'] != null) {
+          List<String> timeParts = doc['time'].split(':');
           time = TimeOfDay(
             hour: int.parse(timeParts[0]),
             minute: int.parse(timeParts[1]),
           );
         }
+
         items.add({
-          'task': parts[0],
+          'task': task,
           'date': date,
           'time': time,
         });
-      }
-    }
+      });
+    });
+
     setState(() {
       _todoItems = items;
     });
   }
+}
 
-  // Save the to-do items to shared preferences
+
   void _saveTodoItems() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> items = [];
+  User? user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    CollectionReference tasksCollection = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('tasks');
+
+    await tasksCollection.get().then((querySnapshot) {
+      querySnapshot.docs.forEach((doc) {
+        doc.reference.delete();
+      });
+    });
+
     for (var item in _todoItems) {
       String task = item['task'];
       DateTime? date = item['date'];
       TimeOfDay? time = item['time'];
 
-      String dateString = date != null ? date.toIso8601String() : '';
-      String timeString = time != null ? '${time.hour}:${time.minute}' : '';
+      String? timeString;
+      if (time != null) {
+        timeString = '${time.hour}:${time.minute}';
+      }
 
-      String combined = '$task||$dateString||$timeString';
-      items.add(combined);
+      tasksCollection.add({
+        'task': task,
+        'date': date != null ? date.toIso8601String() : null,
+        'time': timeString,
+      });
     }
-    await prefs.setStringList('todoItems', items);
   }
+}
 
   // Add a new to-do item
-  void _addTodoItem(
-      String newTodoItem, DateTime? selectedDate, TimeOfDay? selectedTime) {
-    bool hasNumbers = RegExp(r'\d').hasMatch(newTodoItem);
-    if (hasNumbers) {
-      // Display an error message or show a snackbar indicating that numbers are not allowed
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Numbers are not allowed in the to-do task."),
-        ),
-      );
-    }
-    if (newTodoItem.isNotEmpty) {
-      setState(() {
-        _todoItems.add({
-          'task': newTodoItem,
-          'date': selectedDate,
-          'time': selectedTime,
-        });
-      });
-      _textFieldController.clear();
-      _saveTodoItems();
-      scheduleNotification(newTodoItem, selectedDate, selectedTime);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Task has been added'),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(
-            left: 10,
-            right: 10,
-          ),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Input cannot be empty'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.only(
-            left: 10,
-            right: 10,
-          ),
-        ),
-      );
-    }
+  void _addTodoItem(String newTodoItem, DateTime? selectedDate, TimeOfDay? selectedTime) {
+  // Check for numbers in the task name
+  bool hasNumbers = RegExp(r'\d').hasMatch(newTodoItem);
+  if (hasNumbers) {
+    // Display an error message or show a snackbar indicating that numbers are not allowed
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Numbers are not allowed in the to-do task."),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(left: 10, right: 10),
+      ),
+    );
+    return; // Don't proceed further if the task has numbers
   }
+
+  if (newTodoItem.isNotEmpty) {
+    setState(() {
+      _todoItems.add({
+        'task': newTodoItem,
+        'date': selectedDate,
+        'time': selectedTime,
+      });
+    });
+    _textFieldController.clear();
+    _saveTodoItems(); // Save the task to Firestore
+
+    // Schedule the notification
+    scheduleNotification(newTodoItem, selectedDate, selectedTime);
+
+    // Show a success snackbar
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Task has been added'),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(left: 10, right: 10),
+      ),
+    );
+  } else {
+    // Show a snackbar if the input is empty
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Input cannot be empty'),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.only(left: 10, right: 10),
+      ),
+    );
+  }
+}
 
   // Schedule a notification
   Future<void> scheduleNotification(
@@ -212,38 +237,55 @@ class _ToDoListState extends State<ToDoList> {
   }
 
   // Edit a to-do item
-  void _editTodoItem(int index) {
-    _textFieldController.text = _todoItems[index]['task'];
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return ToDoItemDialog(
-          title: 'Edit Task',
-          textFieldController: _textFieldController,
-          onSave: (newTodoItem, selectedDate, selectedTime) {
-            setState(() {
-              _todoItems[index]['task'] = newTodoItem;
-              _todoItems[index]['date'] = selectedDate;
-              _todoItems[index]['time'] = selectedTime;
-            });
-            Navigator.pop(context);
-            _saveTodoItems();
+ void _editTodoItem(int index) {
+  _textFieldController.text = _todoItems[index]['task'];
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return ToDoItemDialog(
+        title: 'Edit Task',
+        textFieldController: _textFieldController,
+        onSave: (newTodoItem, selectedDate, selectedTime) {
+          // Check if the newTodoItem contains numbers
+          bool hasNumbers = RegExp(r'\d').hasMatch(newTodoItem);
+          if (hasNumbers) {
+            // Display an error message or show a snackbar indicating that numbers are not allowed
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Your task has been edited'),
-                backgroundColor: Colors.green,
+                content: Text("Numbers are not allowed in the to-do task."),
+                backgroundColor: Colors.red,
                 behavior: SnackBarBehavior.floating,
-                margin: EdgeInsets.only(
-                  left: 10,
-                  right: 10,
-                ),
+                margin: EdgeInsets.only(left: 10, right: 10),
               ),
-            ); // Save the updated to-do items
-          },
-        );
-      },
-    );
-  }
+            );
+            return; // Don't proceed further if the task has numbers
+          }
+
+          setState(() {
+            _todoItems[index]['task'] = newTodoItem;
+            _todoItems[index]['date'] = selectedDate;
+            _todoItems[index]['time'] = selectedTime;
+          });
+          Navigator.pop(context);
+          _saveTodoItems(); // Save the updated task to Firestore
+
+          // Schedule the notification
+          scheduleNotification(newTodoItem, selectedDate, selectedTime);
+
+          // Show a success snackbar
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Your task has been edited'),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.only(left: 10, right: 10),
+            ),
+          );
+        },
+      );
+    },
+  );
+}
 
   // Remove a to-do item
   void _removeTodoItem(int index) {

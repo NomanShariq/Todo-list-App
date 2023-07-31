@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -11,15 +12,15 @@ import 'screens/todo_list_screen.dart';
 
 final FlutterLocalNotificationsPlugin notificationsPlugin =
     FlutterLocalNotificationsPlugin();
+bool shouldUseFirestoreEmulator = false;
 
-late final FirebaseApp app;
-late final FirebaseAuth auth;
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  app = await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); 
+await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
+  if (shouldUseFirestoreEmulator) {
+    FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
+  }
   runApp(ToDoListApp());
 }
 
