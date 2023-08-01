@@ -15,8 +15,8 @@ final FlutterLocalNotificationsPlugin notificationsPlugin =
 bool shouldUseFirestoreEmulator = false;
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized(); 
-await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   if (shouldUseFirestoreEmulator) {
     FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
@@ -32,18 +32,25 @@ class ToDoListApp extends StatefulWidget {
 class _ToDoListAppState extends State<ToDoListApp> {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'To-Do List',
-      themeMode: ThemeMode.system,
-      theme: ThemeData(fontFamily: 'Raleway'),
-      darkTheme: myThemes.darkTheme,
-      home: const ToDoList(),
-      routes: {
-        loginRoute: (context) => const LogInScreen(),
-        signUpRoute: (context) => const SignUpScreen(),
-        homeScreenroute: (context) => const ToDoList(),
-      },
-    );
+    return StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          final isUserLoggedIn =
+              snapshot.connectionState == ConnectionState.active && snapshot.hasData;
+          return 
+          MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: 'To-Do List',
+            themeMode: ThemeMode.system,
+            theme: ThemeData(fontFamily: 'Raleway'),
+            darkTheme: myThemes.darkTheme,
+            home: isUserLoggedIn ? ToDoList() : LogInScreen(),
+            routes: {
+              loginRoute: (context) => const LogInScreen(),
+              signUpRoute: (context) => const SignUpScreen(),
+              homeScreenroute: (context) => const ToDoList(),
+            },
+          );
+        });
   }
 }

@@ -62,7 +62,7 @@ class _ToDoListState extends State<ToDoList> {
     }
   }
 
-void _loadTodoItems() async {
+ void _loadTodoItems() async {
   User? user = FirebaseAuth.instance.currentUser;
   if (user != null) {
     CollectionReference tasksCollection = FirebaseFirestore.instance
@@ -74,15 +74,26 @@ void _loadTodoItems() async {
     await tasksCollection.get().then((querySnapshot) {
       querySnapshot.docs.forEach((doc) {
         String task = doc['task'];
-        DateTime? date =
-            doc['date'] != null ? DateTime.parse(doc['date']) : null;
+
+        // Parse the 'date' field
+        DateTime? date;
+        try {
+          date = doc['date'] != null ? DateTime.parse(doc['date']) : null;
+        } catch (e) {
+          date = null; // Handle the case where 'date' is not in the correct format
+        }
+
+        // Parse the 'time' field
         TimeOfDay? time;
-        if (doc['time'] != null) {
-          List<String> timeParts = doc['time'].split(':');
-          time = TimeOfDay(
-            hour: int.parse(timeParts[0]),
-            minute: int.parse(timeParts[1]),
-          );
+        try {
+          if (doc['time'] != null) {
+            List<String> timeParts = doc['time'].split(':');
+            int hour = int.parse(timeParts[0]);
+            int minute = int.parse(timeParts[1]);
+            time = TimeOfDay(hour: hour, minute: minute);
+          }
+        } catch (e) {
+          time = null; // Handle the case where 'time' is not in the correct format
         }
 
         items.add({
@@ -101,90 +112,91 @@ void _loadTodoItems() async {
 
 
   void _saveTodoItems() async {
-  User? user = FirebaseAuth.instance.currentUser;
-  if (user != null) {
-    CollectionReference tasksCollection = FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .collection('tasks');
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      CollectionReference tasksCollection = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('tasks');
 
-    await tasksCollection.get().then((querySnapshot) {
-      querySnapshot.docs.forEach((doc) {
-        doc.reference.delete();
+      await tasksCollection.get().then((querySnapshot) {
+        querySnapshot.docs.forEach((doc) {
+          doc.reference.delete();
+        });
       });
-    });
 
-    for (var item in _todoItems) {
-      String task = item['task'];
-      DateTime? date = item['date'];
-      TimeOfDay? time = item['time'];
+      for (var item in _todoItems) {
+        String task = item['task'];
+        DateTime? date = item['date'];
+        TimeOfDay? time = item['time'];
 
-      String? timeString;
-      if (time != null) {
-        timeString = '${time.hour}:${time.minute}';
+        String? timeString;
+        if (time != null) {
+          timeString = '${time.hour}:${time.minute}';
+        }
+
+        tasksCollection.add({
+          'task': task,
+          'date': date != null ? date.toIso8601String() : null,
+          'time': timeString,
+        });
       }
-
-      tasksCollection.add({
-        'task': task,
-        'date': date != null ? date.toIso8601String() : null,
-        'time': timeString,
-      });
     }
   }
-}
 
   // Add a new to-do item
-  void _addTodoItem(String newTodoItem, DateTime? selectedDate, TimeOfDay? selectedTime) {
-  // Check for numbers in the task name
-  bool hasNumbers = RegExp(r'\d').hasMatch(newTodoItem);
-  if (hasNumbers) {
-    // Display an error message or show a snackbar indicating that numbers are not allowed
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Numbers are not allowed in the to-do task."),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.only(left: 10, right: 10),
-      ),
-    );
-    return; // Don't proceed further if the task has numbers
-  }
+  void _addTodoItem(
+      String newTodoItem, DateTime? selectedDate, TimeOfDay? selectedTime) {
+    // Check for numbers in the task name
+    bool hasNumbers = RegExp(r'\d').hasMatch(newTodoItem);
+    if (hasNumbers) {
+      // Display an error message or show a snackbar indicating that numbers are not allowed
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Numbers are not allowed in the to-do task."),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(left: 10, right: 10),
+        ),
+      );
+      return; // Don't proceed further if the task has numbers
+    }
 
-  if (newTodoItem.isNotEmpty) {
-    setState(() {
-      _todoItems.add({
-        'task': newTodoItem,
-        'date': selectedDate,
-        'time': selectedTime,
+    if (newTodoItem.isNotEmpty) {
+      setState(() {
+        _todoItems.add({
+          'task': newTodoItem,
+          'date': selectedDate,
+          'time': selectedTime,
+        });
       });
-    });
-    _textFieldController.clear();
-    _saveTodoItems(); // Save the task to Firestore
+      _textFieldController.clear();
+      _saveTodoItems(); // Save the task to Firestore
 
-    // Schedule the notification
-    scheduleNotification(newTodoItem, selectedDate, selectedTime);
+      // Schedule the notification
+      scheduleNotification(newTodoItem, selectedDate, selectedTime);
 
-    // Show a success snackbar
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Task has been added'),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.only(left: 10, right: 10),
-      ),
-    );
-  } else {
-    // Show a snackbar if the input is empty
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Input cannot be empty'),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.only(left: 10, right: 10),
-      ),
-    );
+      // Show a success snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Task has been added'),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(left: 10, right: 10),
+        ),
+      );
+    } else {
+      // Show a snackbar if the input is empty
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Input cannot be empty'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(left: 10, right: 10),
+        ),
+      );
+    }
   }
-}
 
   // Schedule a notification
   Future<void> scheduleNotification(
@@ -236,15 +248,17 @@ void _loadTodoItems() async {
     return format.format(dateTime);
   }
 
-  // Edit a to-do item
- void _editTodoItem(int index) {
-  _textFieldController.text = _todoItems[index]['task'];
+ // Edit a to-do item
+void _editTodoItem(int index) {
+  TextEditingController editTextFieldController =
+      TextEditingController(text: _todoItems[index]['task']);
+
   showDialog(
     context: context,
     builder: (BuildContext context) {
       return ToDoItemDialog(
         title: 'Edit Task',
-        textFieldController: _textFieldController,
+        textFieldController: editTextFieldController,
         onSave: (newTodoItem, selectedDate, selectedTime) {
           // Check if the newTodoItem contains numbers
           bool hasNumbers = RegExp(r'\d').hasMatch(newTodoItem);
@@ -269,9 +283,6 @@ void _loadTodoItems() async {
           Navigator.pop(context);
           _saveTodoItems(); // Save the updated task to Firestore
 
-          // Schedule the notification
-          scheduleNotification(newTodoItem, selectedDate, selectedTime);
-
           // Show a success snackbar
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -280,12 +291,13 @@ void _loadTodoItems() async {
               behavior: SnackBarBehavior.floating,
               margin: EdgeInsets.only(left: 10, right: 10),
             ),
-          );
+          ); // Save the updated to-do items
         },
       );
     },
   );
 }
+
 
   // Remove a to-do item
   void _removeTodoItem(int index) {

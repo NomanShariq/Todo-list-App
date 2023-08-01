@@ -36,115 +36,119 @@ class _LogInScreenState extends State<LogInScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      body: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 30,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'LogIn',
-              style: TextStyle(
-                fontSize: 30,
-              ),
-            ),
-            const SizedBox(
-              height: 40,
-            ),
-            TextFormField(
-              controller: _email,
-              keyboardType: TextInputType.emailAddress,
-              autocorrect: false,
-              enableSuggestions: false,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(
-                  borderSide: BorderSide(),
-                ),
-                hintText: 'Enter Your Username',
-                prefixIcon: Icon(
-                  Icons.person,
-                ),
-              ),
-            ),
-            const SizedBox(
-              height: 30,
-            ),
-            PasswordToggleField(
-  controller: _password,
-  isPasswordVisible: _isPasswordVisible,
-),
-            const SizedBox(
-              height: 40,
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final email = _email.text;
-                final password = _password.text;
-                try {
-                  final credential = await FirebaseAuth.instance
-                      .signInWithEmailAndPassword(
-                          email: email, password: password);
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                    homeScreenroute,
-                    (route) => false,
-                  );
-                } catch (e) {
-                  String errorMessage = 'An error occurred during login';
-                  if (e is FirebaseAuthException) {
-                    if (e.code == 'user-not-found') {
-                      errorMessage = 'No user found for that email.';
-                    } else if (e.code == 'wrong-password') {
-                      errorMessage = 'Wrong password provided for that user.';
-                    } else {
-                      errorMessage = 'Error during login: ${e.message}';
-                    }
-                  } else {
-                    errorMessage = 'Unexpected error during login: $e';
-                  }
-                  showDialog(
-                    context: context,
-                    builder: (context) => ErrorDialog(
-                      title: 'Login Error',
-                      content: errorMessage,
-                      buttonText: 'OK',
-                    ),
-                  );
-                }
-              },
-              style: ButtonStyle(
-                minimumSize: MaterialStateProperty.all(
-                  const Size(130, 50),
-                ),
-              ),
-              child: const Text(
+      resizeToAvoidBottomInset: false,
+      body: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 30,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              const Text(
                 'LogIn',
-              ),
-            ),
-            const SizedBox(
-              height: 30,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'not Register yet?',
+                style: TextStyle(
+                  fontSize: 30,
                 ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      signUpRoute,
+              ),
+              const SizedBox(
+                height: 40,
+              ),
+              TextFormField(
+                controller: _email,
+                keyboardType: TextInputType.emailAddress,
+                autocorrect: false,
+                enableSuggestions: false,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(),
+                  ),
+                  hintText: 'Enter Your Email',
+                  prefixIcon: Icon(
+                    Icons.person,
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 30,
+              ),
+              PasswordToggleField(
+                controller: _password,
+                isPasswordVisible: _isPasswordVisible,
+              ),
+              const SizedBox(
+                height: 40,
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final email = _email.text;
+                  final password = _password.text;
+                  try {
+                    final credential = await FirebaseAuth.instance
+                        .signInWithEmailAndPassword(
+                            email: email, password: password);
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      homeScreenroute,
                       (route) => false,
                     );
-                  },
-                  child: const Text(
-                    'Register Now',
+                  } catch (e) {
+                    String errorMessage = 'An error occurred during login';
+                    if (e is FirebaseAuthException) {
+                      if (e.code == 'user-not-found') {
+                        errorMessage = 'No user found for that email.';
+                      } else if (e.code == 'wrong-password') {
+                        errorMessage = 'Invalid Credentials.';
+                      } else {
+                        errorMessage = 'Error during login: ${e.message}';
+                      }
+                    } else {
+                      errorMessage = 'Unexpected error during login: $e';
+                    }
+                    showDialog(
+                      context: context,
+                      builder: (context) => ErrorDialog(
+                        title: 'Login Error',
+                        content: errorMessage,
+                        buttonText: 'OK',
+                      ),
+                    );
+                  }
+                },
+                style: ButtonStyle(
+                  minimumSize: MaterialStateProperty.all(
+                    const Size(130, 50),
                   ),
-                )
-              ],
-            )
-          ],
+                ),
+                child: const Text(
+                  'LogIn',
+                ),
+              ),
+              const SizedBox(
+                height: 30,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'not Register yet?',
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        signUpRoute,
+                        (route) => false,
+                      );
+                    },
+                    child: const Text(
+                      'Register Now',
+                    ),
+                  )
+                ],
+              )
+            ],
+          ),
         ),
       ),
     );
