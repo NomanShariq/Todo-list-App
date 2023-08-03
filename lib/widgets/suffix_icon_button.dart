@@ -4,7 +4,7 @@ class PasswordToggleField extends StatefulWidget {
   final TextEditingController controller;
   bool isPasswordVisible;
 
-  PasswordToggleField({
+  PasswordToggleField({super.key, 
     required this.controller,
     required this.isPasswordVisible,
   });
