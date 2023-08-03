@@ -22,11 +22,18 @@ class _PasswordToggleFieldState extends State<PasswordToggleField> {
       enableSuggestions: false,
       autocorrect: false,
       decoration: InputDecoration(
-        border: OutlineInputBorder(
+        border: const OutlineInputBorder(
           borderSide: BorderSide(),
         ),
-        hintText: 'Enter Your Password',
-        prefixIcon: Icon(
+        labelText: 'Enter Your Password',
+        //lable style
+        labelStyle: const TextStyle(
+          color: Colors.grey,
+          fontSize: 16,
+          fontFamily: "verdana_regular",
+          fontWeight: FontWeight.w400,
+        ),
+        prefixIcon: const Icon(
           Icons.security,
         ),
         suffixIcon: GestureDetector(

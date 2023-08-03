@@ -62,54 +62,55 @@ class _ToDoListState extends State<ToDoList> {
     }
   }
 
- void _loadTodoItems() async {
-  User? user = FirebaseAuth.instance.currentUser;
-  if (user != null) {
-    CollectionReference tasksCollection = FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .collection('tasks');
+  void _loadTodoItems() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      CollectionReference tasksCollection = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('tasks');
 
-    List<Map<String, dynamic>> items = [];
-    await tasksCollection.get().then((querySnapshot) {
-      querySnapshot.docs.forEach((doc) {
-        String task = doc['task'];
+      List<Map<String, dynamic>> items = [];
+      await tasksCollection.get().then((querySnapshot) {
+        querySnapshot.docs.forEach((doc) {
+          String task = doc['task'];
 
-        // Parse the 'date' field
-        DateTime? date;
-        try {
-          date = doc['date'] != null ? DateTime.parse(doc['date']) : null;
-        } catch (e) {
-          date = null; // Handle the case where 'date' is not in the correct format
-        }
-
-        // Parse the 'time' field
-        TimeOfDay? time;
-        try {
-          if (doc['time'] != null) {
-            List<String> timeParts = doc['time'].split(':');
-            int hour = int.parse(timeParts[0]);
-            int minute = int.parse(timeParts[1]);
-            time = TimeOfDay(hour: hour, minute: minute);
+          // Parse the 'date' field
+          DateTime? date;
+          try {
+            date = doc['date'] != null ? DateTime.parse(doc['date']) : null;
+          } catch (e) {
+            date =
+                null; // Handle the case where 'date' is not in the correct format
           }
-        } catch (e) {
-          time = null; // Handle the case where 'time' is not in the correct format
-        }
 
-        items.add({
-          'task': task,
-          'date': date,
-          'time': time,
+          // Parse the 'time' field
+          TimeOfDay? time;
+          try {
+            if (doc['time'] != null) {
+              List<String> timeParts = doc['time'].split(':');
+              int hour = int.parse(timeParts[0]);
+              int minute = int.parse(timeParts[1]);
+              time = TimeOfDay(hour: hour, minute: minute);
+            }
+          } catch (e) {
+            time =
+                null; // Handle the case where 'time' is not in the correct format
+          }
+
+          items.add({
+            'task': task,
+            'date': date,
+            'time': time,
+          });
         });
       });
-    });
 
-    setState(() {
-      _todoItems = items;
-    });
+      setState(() {
+        _todoItems = items;
+      });
+    }
   }
-}
-
 
   void _saveTodoItems() async {
     User? user = FirebaseAuth.instance.currentUser;
@@ -248,56 +249,55 @@ class _ToDoListState extends State<ToDoList> {
     return format.format(dateTime);
   }
 
- // Edit a to-do item
-void _editTodoItem(int index) {
-  TextEditingController editTextFieldController =
-      TextEditingController(text: _todoItems[index]['task']);
+  // Edit a to-do item
+  void _editTodoItem(int index) {
+    TextEditingController editTextFieldController =
+        TextEditingController(text: _todoItems[index]['task']);
 
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return ToDoItemDialog(
-        title: 'Edit Task',
-        textFieldController: editTextFieldController,
-        onSave: (newTodoItem, selectedDate, selectedTime) {
-          // Check if the newTodoItem contains numbers
-          bool hasNumbers = RegExp(r'\d').hasMatch(newTodoItem);
-          if (hasNumbers) {
-            // Display an error message or show a snackbar indicating that numbers are not allowed
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return ToDoItemDialog(
+          title: 'Edit Task',
+          textFieldController: editTextFieldController,
+          onSave: (newTodoItem, selectedDate, selectedTime) {
+            // Check if the newTodoItem contains numbers
+            bool hasNumbers = RegExp(r'\d').hasMatch(newTodoItem);
+            if (hasNumbers) {
+              // Display an error message or show a snackbar indicating that numbers are not allowed
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("Numbers are not allowed in the to-do task."),
+                  backgroundColor: Colors.red,
+                  behavior: SnackBarBehavior.floating,
+                  margin: EdgeInsets.only(left: 10, right: 10),
+                ),
+              );
+              return; // Don't proceed further if the task has numbers
+            }
+
+            setState(() {
+              _todoItems[index]['task'] = newTodoItem;
+              _todoItems[index]['date'] = selectedDate;
+              _todoItems[index]['time'] = selectedTime;
+            });
+            Navigator.pop(context);
+            _saveTodoItems(); // Save the updated task to Firestore
+
+            // Show a success snackbar
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text("Numbers are not allowed in the to-do task."),
-                backgroundColor: Colors.red,
+                content: Text('Your task has been edited'),
+                backgroundColor: Colors.green,
                 behavior: SnackBarBehavior.floating,
                 margin: EdgeInsets.only(left: 10, right: 10),
               ),
-            );
-            return; // Don't proceed further if the task has numbers
-          }
-
-          setState(() {
-            _todoItems[index]['task'] = newTodoItem;
-            _todoItems[index]['date'] = selectedDate;
-            _todoItems[index]['time'] = selectedTime;
-          });
-          Navigator.pop(context);
-          _saveTodoItems(); // Save the updated task to Firestore
-
-          // Show a success snackbar
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Your task has been edited'),
-              backgroundColor: Colors.green,
-              behavior: SnackBarBehavior.floating,
-              margin: EdgeInsets.only(left: 10, right: 10),
-            ),
-          ); // Save the updated to-do items
-        },
-      );
-    },
-  );
-}
-
+            ); // Save the updated to-do items
+          },
+        );
+      },
+    );
+  }
 
   // Remove a to-do item
   void _removeTodoItem(int index) {
@@ -432,7 +432,14 @@ void _editTodoItem(int index) {
                       border: OutlineInputBorder(
                         borderSide: BorderSide(),
                       ),
-                      hintText: 'Search Task Here',
+                      labelText: 'Search Task Here',
+                      //lable style
+                      labelStyle: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 16,
+                        fontFamily: "verdana_regular",
+                        fontWeight: FontWeight.w400,
+                      ),
                       prefixIcon: Icon(Icons.search),
                     ),
                   ),
@@ -461,7 +468,6 @@ void _editTodoItem(int index) {
                               title: Text(task,
                                   style: const TextStyle(
                                     fontSize: 22,
-                                    color: Colors.white,
                                   )),
                               subtitle: date != null
                                   ? Row(
@@ -476,9 +482,9 @@ void _editTodoItem(int index) {
                                             RichText(
                                               text: TextSpan(
                                                   text: 'Date: ',
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                  ),
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .titleMedium, // Use the default bodyText1 style from the current theme
                                                   children: <TextSpan>[
                                                     TextSpan(
                                                         text: DateFormat.yMd()
@@ -495,9 +501,9 @@ void _editTodoItem(int index) {
                                             RichText(
                                               text: TextSpan(
                                                   text: 'Time: ',
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                  ),
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .titleMedium,
                                                   children: <TextSpan>[
                                                     TextSpan(
                                                         text:
@@ -543,7 +549,6 @@ void _editTodoItem(int index) {
               ],
             ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.white,
         child: const Icon(Icons.add),
         onPressed: () {
           showDialog(

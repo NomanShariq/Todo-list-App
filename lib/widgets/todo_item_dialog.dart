@@ -22,7 +22,6 @@ class _ToDoItemDialogState extends State<ToDoItemDialog> {
   TimeOfDay? _selectedTime;
   TimeOfDay timeOfDay = TimeOfDay.now();
 
-  
   void presentDatePicker() {
     // Show a date picker dialog.
     showDatePicker(
@@ -91,75 +90,106 @@ class _ToDoItemDialogState extends State<ToDoItemDialog> {
           border: OutlineInputBorder(
             borderSide: BorderSide(),
           ),
-          hintText: 'Add Task Here',
+          labelText: 'Add Task here',
+          //lable style
+          labelStyle: TextStyle(
+            color: Colors.grey,
+            fontSize: 16,
+            fontFamily: "verdana_regular",
+            fontWeight: FontWeight.w400,
+          ),
           prefixIcon: Icon(Icons.add_task),
         ),
       ),
       actions: <Widget>[
-        Column(
+        Stack(
           children: [
-            Row(
+            Column(
               children: [
-                const SizedBox(
-                  width: 15.0,
-                ),
-                Text(
-                  _selectedTime == null
-                      ? 'No Time Chosen'
-                      : 'Time Picked ${_formatSelectedTime()}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(
-                  width: 20.0,
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    _presentTimePicker();
-                  },
-                  style: ButtonStyle(
-                    backgroundColor:
-                        MaterialStateProperty.all<Color>(Colors.white),
-                  ),
-                  child: const Text(
-                    "Choose Time",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
+                Row(
+                  children: [
+                    const SizedBox(
+                      width: 15.0,
                     ),
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              children: <Widget>[
-                const SizedBox(
-                  height: 35.0,
-                ),
-                const SizedBox(
-                  width: 15.0,
-                ),
-                Text(
-                  _selectedDate == null
-                      ? 'No Date Chosen'
-                      : 'Date Picked ${DateFormat.yMd().format(_selectedDate!).trimRight()}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(
-                  width: 23.0,
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    presentDatePicker();
-                  },
-                  style: ButtonStyle(
-                    backgroundColor:
-                        MaterialStateProperty.all<Color>(Colors.white),
-                  ),
-                  child: const Text(
-                    "Choose Date",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
+                    Text(
+                      _selectedTime == null
+                          ? 'No Time Chosen'
+                          : 'Time Picked ${_formatSelectedTime()}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                  ),
+                    const SizedBox(
+                      width: 20.0,
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        _presentTimePicker();
+                      },
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                          Theme.of(context).brightness == Brightness.light
+                              ? Colors.white
+                              : Theme.of(context).colorScheme.primary,
+                        ),
+                        foregroundColor: MaterialStateProperty.all<Color>(
+                          Theme.of(context).brightness == Brightness.light
+                              ? Colors
+                                  .black // Set the text color to black for light theme
+                              : Colors
+                                  .white, // Set the text color to white for dark theme
+                        ),
+                      ),
+                      child: const Text(
+                        "Choose Time",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: <Widget>[
+                    const SizedBox(
+                      height: 35.0,
+                    ),
+                    const SizedBox(
+                      width: 15.0,
+                    ),
+                    Text(
+                      _selectedDate == null
+                          ? 'No Date Chosen'
+                          : 'Date Picked ${DateFormat.yMd().format(_selectedDate!).trimRight()}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(
+                      width: 23.0,
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        presentDatePicker();
+                      },
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                          Theme.of(context).brightness == Brightness.light
+                              ? Colors.white
+                              : Theme.of(context).colorScheme.primary,
+                        ),
+                        foregroundColor: MaterialStateProperty.all<Color>(
+                          Theme.of(context).brightness == Brightness.light
+                              ? Colors
+                                  .black // Set the text color to black for light theme
+                              : Colors
+                                  .white, // Set the text color to white for dark theme
+                        ),
+                      ),
+                      child: const Text(
+                        "Choose Date",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -172,6 +202,20 @@ class _ToDoItemDialogState extends State<ToDoItemDialog> {
               onPressed: () {
                 Navigator.pop(context); // Close the dialog without saving
               },
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all<Color>(
+                  Theme.of(context).brightness == Brightness.light
+                      ? Colors.white
+                      : Theme.of(context).colorScheme.primary,
+                ),
+                foregroundColor: MaterialStateProperty.all<Color>(
+                  Theme.of(context).brightness == Brightness.light
+                      ? Colors
+                          .black // Set the text color to black for light theme
+                      : Colors
+                          .white, // Set the text color to white for dark theme
+                ),
+              ),
               child: const Text('Cancel'),
             ),
             const SizedBox(
@@ -182,6 +226,20 @@ class _ToDoItemDialogState extends State<ToDoItemDialog> {
                 String todoItem = widget.textFieldController.text;
                 widget.onSave(todoItem, _selectedDate, _selectedTime);
               },
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all<Color>(
+                  Theme.of(context).brightness == Brightness.light
+                      ? Colors.white
+                      : Theme.of(context).colorScheme.primary,
+                ),
+                foregroundColor: MaterialStateProperty.all<Color>(
+                  Theme.of(context).brightness == Brightness.light
+                      ? Colors
+                          .black // Set the text color to black for light theme
+                      : Colors
+                          .white, // Set the text color to white for dark theme
+                ),
+              ),
               child: const Text('Save'),
             ),
           ],

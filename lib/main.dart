@@ -44,7 +44,7 @@ class _ToDoListAppState extends State<ToDoListApp> {
             themeMode: ThemeMode.system,
             theme: ThemeData(fontFamily: 'Raleway'),
             darkTheme: myThemes.darkTheme,
-            home: isUserLoggedIn ? ToDoList() : LogInScreen(),
+            home: isUserLoggedIn ? const ToDoList() : const LogInScreen(),
             routes: {
               loginRoute: (context) => const LogInScreen(),
               signUpRoute: (context) => const SignUpScreen(),

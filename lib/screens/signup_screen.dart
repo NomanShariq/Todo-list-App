@@ -41,14 +41,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
         padding: const EdgeInsets.symmetric(
           horizontal: 30,
         ),
-        child: SingleChildScrollView(
-          physics: NeverScrollableScrollPhysics(),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minWidth: MediaQuery.of(context).size.width,
-              minHeight: MediaQuery.of(context).size.height,
-            ),
-            child: IntrinsicHeight(
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height,
+          child: SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minWidth: MediaQuery.of(context).size.width,
+                minHeight: MediaQuery.of(context).size.height,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -66,7 +66,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       border: OutlineInputBorder(
                         borderSide: BorderSide(),
                       ),
-                      hintText: 'Enter Your Username',
+                      labelText: 'Enter Your Username',
+                      //lable style
+                      labelStyle: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 16,
+                        fontFamily: "verdana_regular",
+                        fontWeight: FontWeight.w400,
+                      ),
                       prefixIcon: Icon(
                         Icons.people,
                       ),
@@ -90,7 +97,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       border: OutlineInputBorder(
                         borderSide: BorderSide(),
                       ),
-                      hintText: 'Enter Your Email',
+                      labelText: 'Enter Your Email',
+                      //lable style
+                      labelStyle: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 16,
+                        fontFamily: "verdana_regular",
+                        fontWeight: FontWeight.w400,
+                      ),
                       prefixIcon: Icon(
                         Icons.email,
                       ),
