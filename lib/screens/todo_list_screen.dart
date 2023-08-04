@@ -20,6 +20,7 @@ class _ToDoListState extends State<ToDoList> {
   String search = '';
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
+  bool _isLoading = false;
 
   // Display the user's email if available
   String userEmail = ''; // Set the initial value to an empty string
@@ -348,6 +349,78 @@ class _ToDoListState extends State<ToDoList> {
     );
   }
 
+  void _showDeleteConfirmationDialog(BuildContext context, int index) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Center(
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 50),
+            color: Color.fromARGB(255, 82, 78, 78),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Delete Task',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text('Are you sure you want to delete this task?'),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              const Color.fromARGB(255, 91, 90, 90),
+                          side: const BorderSide(
+                            width: 2.0,
+                            color: Colors.green,
+                          )),
+                      onPressed: () {
+                        Navigator.pop(context); // Close the bottom sheet
+                      },
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(color: Colors.green),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              const Color.fromARGB(255, 91, 90, 90),
+                          side: const BorderSide(
+                            width: 2.0,
+                            color: Colors.red,
+                          )),
+                      onPressed: () {
+                        _removeTodoItem(index);
+                        Navigator.pop(
+                            context); // Close the bottom sheet after deleting
+                      },
+                      child: const Text(
+                        'Delete',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -428,9 +501,10 @@ class _ToDoListState extends State<ToDoList> {
                         search = value;
                       });
                     },
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       border: OutlineInputBorder(
                         borderSide: BorderSide(),
+                        borderRadius: BorderRadius.circular(12.0),
                       ),
                       labelText: 'Search Task Here',
                       //lable style
@@ -532,7 +606,8 @@ class _ToDoListState extends State<ToDoList> {
                                     color: Colors.red,
                                     icon: const Icon(Icons.delete),
                                     onPressed: () {
-                                      _removeTodoItem(index);
+                                      _showDeleteConfirmationDialog(
+                                          context, index);
                                     },
                                   ),
                                 ],

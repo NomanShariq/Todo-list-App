@@ -1,10 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:todo_list_app/constants/routes.dart';
+import 'package:todo_list_app/widgets/password_field.dart';
 
 import '../widgets/error_dialog.dart';
-import '../widgets/suffix_icon_button.dart';
 
 class LogInScreen extends StatefulWidget {
   const LogInScreen({super.key});
@@ -61,19 +60,20 @@ class _LogInScreenState extends State<LogInScreen> {
                   keyboardType: TextInputType.emailAddress,
                   autocorrect: false,
                   enableSuggestions: false,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     border: OutlineInputBorder(
-                      borderSide: BorderSide(),
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide: const BorderSide(),
                     ),
                     labelText: 'Enter Your Email',
                     //lable style
-                    labelStyle: TextStyle(
+                    labelStyle: const TextStyle(
                       color: Colors.grey,
                       fontSize: 16,
                       fontFamily: "verdana_regular",
                       fontWeight: FontWeight.w400,
                     ),
-                    prefixIcon: Icon(
+                    prefixIcon: const Icon(
                       Icons.person,
                     ),
                   ),

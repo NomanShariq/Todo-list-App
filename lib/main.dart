@@ -21,10 +21,12 @@ void main() async {
   if (shouldUseFirestoreEmulator) {
     FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080);
   }
-  runApp(ToDoListApp());
+  runApp(const ToDoListApp());
 }
 
 class ToDoListApp extends StatefulWidget {
+  const ToDoListApp({super.key});
+
   @override
   State<ToDoListApp> createState() => _ToDoListAppState();
 }

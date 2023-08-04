@@ -22,8 +22,9 @@ class _PasswordToggleFieldState extends State<PasswordToggleField> {
       enableSuggestions: false,
       autocorrect: false,
       decoration: InputDecoration(
-        border: const OutlineInputBorder(
-          borderSide: BorderSide(),
+        border:  OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+          borderSide: const BorderSide(),
         ),
         labelText: 'Enter Your Password',
         //lable style
