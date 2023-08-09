@@ -44,6 +44,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         child: SizedBox(
           height: MediaQuery.of(context).size.height,
           child: SingleChildScrollView(
+            physics: ScrollPhysics(),
             child: ConstrainedBox(
               constraints: BoxConstraints(
                 minWidth: MediaQuery.of(context).size.width,
@@ -61,8 +62,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     height: 40,
                   ),
                   TextFormField(
+                    textInputAction: TextInputAction.next,
                     keyboardType: TextInputType.name,
-                    decoration:  InputDecoration(
+                    decoration: InputDecoration(
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12.0),
                         borderSide: const BorderSide(),
@@ -90,12 +92,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     height: 30,
                   ),
                   TextFormField(
-                    
+                    textInputAction: TextInputAction.next,
                     controller: _email,
                     keyboardType: TextInputType.emailAddress,
                     autocorrect: false,
                     enableSuggestions: false,
-                    decoration:  InputDecoration(
+                    decoration: InputDecoration(
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12.0),
                         borderSide: const BorderSide(),

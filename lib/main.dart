@@ -38,13 +38,13 @@ class _ToDoListAppState extends State<ToDoListApp> {
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
           final isUserLoggedIn =
-              snapshot.connectionState == ConnectionState.active && snapshot.hasData;
-          return 
-          MaterialApp(
+              snapshot.connectionState == ConnectionState.active &&
+                  snapshot.hasData;
+          return MaterialApp(
             debugShowCheckedModeBanner: false,
             title: 'To-Do List',
             themeMode: ThemeMode.system,
-            theme: ThemeData(fontFamily: 'Raleway'),
+            theme: myThemes.lightTheme,
             darkTheme: myThemes.darkTheme,
             home: isUserLoggedIn ? const ToDoList() : const LogInScreen(),
             routes: {

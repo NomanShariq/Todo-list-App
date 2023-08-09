@@ -5,12 +5,15 @@ class ToDoItemDialog extends StatefulWidget {
   final String title;
   final TextEditingController textFieldController;
   final Function(String, DateTime?, TimeOfDay?) onSave;
-
+final DateTime? initialDate; // Add this line
+  final TimeOfDay? initialTime;
   const ToDoItemDialog({
     Key? key,
     required this.title,
     required this.textFieldController,
     required this.onSave,
+    this.initialDate,
+    this.initialTime, 
   }) : super(key: key);
 
   @override
@@ -21,6 +24,22 @@ class _ToDoItemDialogState extends State<ToDoItemDialog> {
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   TimeOfDay timeOfDay = TimeOfDay.now();
+  DateTime? _previousSelectedDate;
+  TimeOfDay? _previousSelectedTime;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Set the initial values if provided
+    if (widget.initialDate != null) {
+      _selectedDate = widget.initialDate;
+    }
+
+    if (widget.initialTime != null) {
+      _selectedTime = widget.initialTime;
+    }
+  }
 
   void presentDatePicker() {
     // Show a date picker dialog.
@@ -34,10 +53,9 @@ class _ToDoItemDialogState extends State<ToDoItemDialog> {
       if (pickedDate == null) {
         return;
       }
-
-      // Update the _selectedDate state variable.
       setState(() {
         _selectedDate = pickedDate;
+        _previousSelectedDate = pickedDate;
       });
     });
   }
@@ -52,6 +70,7 @@ class _ToDoItemDialogState extends State<ToDoItemDialog> {
       }
       setState(() {
         _selectedTime = pickedTime;
+        _previousSelectedTime = pickedTime;
       });
     });
   }
@@ -122,7 +141,11 @@ class _ToDoItemDialogState extends State<ToDoItemDialog> {
                     ),
                     ElevatedButton(
                       onPressed: () {
-                        _presentTimePicker();
+                        if (_selectedTime == null) {
+                          _presentTimePicker();
+                        } else {
+                          _presentTimePicker();
+                        }
                       },
                       style: ButtonStyle(
                         backgroundColor: MaterialStateProperty.all<Color>(
@@ -132,18 +155,18 @@ class _ToDoItemDialogState extends State<ToDoItemDialog> {
                         ),
                         foregroundColor: MaterialStateProperty.all<Color>(
                           Theme.of(context).brightness == Brightness.light
-                              ? Colors
-                                  .black // Set the text color to black for light theme
-                              : Colors
-                                  .white, // Set the text color to white for dark theme
+                              ? Colors.black
+                              : Colors.white,
                         ),
                       ),
-                      child: const Text(
-                        "Choose Time",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      child: _selectedTime == null
+                          ? const Text(
+                              "Choose Time",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            )
+                          : const Icon(Icons.edit), // Replace with edit icon
                     ),
                   ],
                 ),
@@ -166,7 +189,11 @@ class _ToDoItemDialogState extends State<ToDoItemDialog> {
                     ),
                     ElevatedButton(
                       onPressed: () {
-                        presentDatePicker();
+                        if (_selectedDate == null || _selectedTime == null) {
+                          presentDatePicker();
+                        } else {
+                          presentDatePicker();
+                        }
                       },
                       style: ButtonStyle(
                         backgroundColor: MaterialStateProperty.all<Color>(
@@ -176,18 +203,18 @@ class _ToDoItemDialogState extends State<ToDoItemDialog> {
                         ),
                         foregroundColor: MaterialStateProperty.all<Color>(
                           Theme.of(context).brightness == Brightness.light
-                              ? Colors
-                                  .black // Set the text color to black for light theme
-                              : Colors
-                                  .white, // Set the text color to white for dark theme
+                              ? Colors.black
+                              : Colors.white,
                         ),
                       ),
-                      child: const Text(
-                        "Choose Date",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      child: _selectedDate == null
+                          ? const Text(
+                              "Choose Date",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            )
+                          : const Icon(Icons.edit), // Replace with edit icon
                     ),
                   ],
                 ),

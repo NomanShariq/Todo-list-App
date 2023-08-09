@@ -4,7 +4,8 @@ class PasswordToggleField extends StatefulWidget {
   final TextEditingController controller;
   bool isPasswordVisible;
 
-  PasswordToggleField({super.key, 
+  PasswordToggleField({
+    super.key,
     required this.controller,
     required this.isPasswordVisible,
   });
@@ -17,12 +18,13 @@ class _PasswordToggleFieldState extends State<PasswordToggleField> {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      textInputAction: TextInputAction.done,
       controller: widget.controller,
       obscureText: !widget.isPasswordVisible,
       enableSuggestions: false,
       autocorrect: false,
       decoration: InputDecoration(
-        border:  OutlineInputBorder(
+        border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.0),
           borderSide: const BorderSide(),
         ),

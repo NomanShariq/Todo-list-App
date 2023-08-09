@@ -22,8 +22,7 @@ class _ToDoListState extends State<ToDoList> {
       FlutterLocalNotificationsPlugin();
   bool _isLoading = false;
 
-  // Display the user's email if available
-  String userEmail = ''; // Set the initial value to an empty string
+  String userEmail = '';
 
   @override
   void initState() {
@@ -37,6 +36,7 @@ class _ToDoListState extends State<ToDoList> {
     _loadTodoItems();
   }
 
+  // Getting username fromemail
   Future<void> _updateUserEmail() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -48,6 +48,8 @@ class _ToDoListState extends State<ToDoList> {
         List<String> nameParts = email.split('@');
         if (nameParts.length == 2) {
           name = nameParts[0];
+          // Extract only alphabetic characters from the name
+          name = name.replaceAll(RegExp(r'[^a-zA-Z]'), '');
           // Capitalize the first letter of the name (optional)
           name = name[0].toUpperCase() + name.substring(1);
         }
@@ -63,6 +65,7 @@ class _ToDoListState extends State<ToDoList> {
     }
   }
 
+  // Loading tasks
   void _loadTodoItems() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -73,7 +76,7 @@ class _ToDoListState extends State<ToDoList> {
 
       List<Map<String, dynamic>> items = [];
       await tasksCollection.get().then((querySnapshot) {
-        querySnapshot.docs.forEach((doc) {
+        for (var doc in querySnapshot.docs) {
           String task = doc['task'];
 
           // Parse the 'date' field
@@ -81,11 +84,8 @@ class _ToDoListState extends State<ToDoList> {
           try {
             date = doc['date'] != null ? DateTime.parse(doc['date']) : null;
           } catch (e) {
-            date =
-                null; // Handle the case where 'date' is not in the correct format
+            date = null;
           }
-
-          // Parse the 'time' field
           TimeOfDay? time;
           try {
             if (doc['time'] != null) {
@@ -95,8 +95,7 @@ class _ToDoListState extends State<ToDoList> {
               time = TimeOfDay(hour: hour, minute: minute);
             }
           } catch (e) {
-            time =
-                null; // Handle the case where 'time' is not in the correct format
+            time = null;
           }
 
           items.add({
@@ -104,7 +103,7 @@ class _ToDoListState extends State<ToDoList> {
             'date': date,
             'time': time,
           });
-        });
+        }
       });
 
       setState(() {
@@ -113,6 +112,7 @@ class _ToDoListState extends State<ToDoList> {
     }
   }
 
+  // Trying to save the task into firebase
   void _saveTodoItems() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -161,7 +161,7 @@ class _ToDoListState extends State<ToDoList> {
           margin: EdgeInsets.only(left: 10, right: 10),
         ),
       );
-      return; // Don't proceed further if the task has numbers
+      return;
     }
 
     if (newTodoItem.isNotEmpty) {
@@ -254,6 +254,8 @@ class _ToDoListState extends State<ToDoList> {
   void _editTodoItem(int index) {
     TextEditingController editTextFieldController =
         TextEditingController(text: _todoItems[index]['task']);
+    DateTime? existingDate = _todoItems[index]['date'];
+    TimeOfDay? existingTime = _todoItems[index]['time'];
 
     showDialog(
       context: context,
@@ -261,21 +263,10 @@ class _ToDoListState extends State<ToDoList> {
         return ToDoItemDialog(
           title: 'Edit Task',
           textFieldController: editTextFieldController,
+          initialDate: existingDate,
+          initialTime: existingTime,
           onSave: (newTodoItem, selectedDate, selectedTime) {
-            // Check if the newTodoItem contains numbers
-            bool hasNumbers = RegExp(r'\d').hasMatch(newTodoItem);
-            if (hasNumbers) {
-              // Display an error message or show a snackbar indicating that numbers are not allowed
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Numbers are not allowed in the to-do task."),
-                  backgroundColor: Colors.red,
-                  behavior: SnackBarBehavior.floating,
-                  margin: EdgeInsets.only(left: 10, right: 10),
-                ),
-              );
-              return; // Don't proceed further if the task has numbers
-            }
+            // Check if the newTodoItem contains numbers and perform validation...
 
             setState(() {
               _todoItems[index]['task'] = newTodoItem;
@@ -285,7 +276,6 @@ class _ToDoListState extends State<ToDoList> {
             Navigator.pop(context);
             _saveTodoItems(); // Save the updated task to Firestore
 
-            // Show a success snackbar
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Your task has been edited'),
@@ -293,7 +283,7 @@ class _ToDoListState extends State<ToDoList> {
                 behavior: SnackBarBehavior.floating,
                 margin: EdgeInsets.only(left: 10, right: 10),
               ),
-            ); // Save the updated to-do items
+            );
           },
         );
       },
@@ -319,6 +309,7 @@ class _ToDoListState extends State<ToDoList> {
     ); // Save the updated to-do items
   }
 
+  // Logout user function
   void _showLogoutConfirmationDialog() {
     showDialog(
       context: context,
@@ -349,73 +340,32 @@ class _ToDoListState extends State<ToDoList> {
     );
   }
 
+  // Deleting task dialog
   void _showDeleteConfirmationDialog(BuildContext context, int index) {
     showDialog(
       context: context,
       builder: (context) {
-        return Center(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 50),
-            color: Color.fromARGB(255, 82, 78, 78),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Delete Task',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text('Are you sure you want to delete this task?'),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              const Color.fromARGB(255, 91, 90, 90),
-                          side: const BorderSide(
-                            width: 2.0,
-                            color: Colors.green,
-                          )),
-                      onPressed: () {
-                        Navigator.pop(context); // Close the bottom sheet
-                      },
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(color: Colors.green),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              const Color.fromARGB(255, 91, 90, 90),
-                          side: const BorderSide(
-                            width: 2.0,
-                            color: Colors.red,
-                          )),
-                      onPressed: () {
-                        _removeTodoItem(index);
-                        Navigator.pop(
-                            context); // Close the bottom sheet after deleting
-                      },
-                      child: const Text(
-                        'Delete',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+        return AlertDialog(
+          title: const Text('Delete Task'),
+          content: const Text('Are you sure you want to delete this task?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+              },
+              child: const Text('Cancel'),
             ),
-          ),
+            TextButton(
+              onPressed: () {
+                _removeTodoItem(index);
+                Navigator.pop(context); // Close the dialog after deleting
+              },
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
         );
       },
     );
@@ -503,23 +453,25 @@ class _ToDoListState extends State<ToDoList> {
                     },
                     decoration: InputDecoration(
                       border: OutlineInputBorder(
-                        borderSide: BorderSide(),
+                        borderSide: const BorderSide(),
                         borderRadius: BorderRadius.circular(12.0),
                       ),
                       labelText: 'Search Task Here',
                       //lable style
-                      labelStyle: TextStyle(
+                      labelStyle: const TextStyle(
                         color: Colors.grey,
                         fontSize: 16,
                         fontFamily: "verdana_regular",
                         fontWeight: FontWeight.w400,
                       ),
-                      prefixIcon: Icon(Icons.search),
+                      prefixIcon: const Icon(Icons.search),
                     ),
                   ),
                 ),
                 Expanded(
                   child: ListView.builder(
+                    physics: const BouncingScrollPhysics(
+                        parent: AlwaysScrollableScrollPhysics()),
                     itemCount: _todoItems.length,
                     itemBuilder: (BuildContext context, int index) {
                       String task = _todoItems[index]['task'];
@@ -558,15 +510,20 @@ class _ToDoListState extends State<ToDoList> {
                                                   text: 'Date: ',
                                                   style: Theme.of(context)
                                                       .textTheme
-                                                      .titleMedium, // Use the default bodyText1 style from the current theme
+                                                      .titleMedium
+                                                      ?.copyWith(
+                                                        color: Theme.of(context)
+                                                                    .brightness ==
+                                                                Brightness.light
+                                                            ? Colors.grey
+                                                            : Colors.white,
+                                                      ),
                                                   children: <TextSpan>[
                                                     TextSpan(
-                                                        text: DateFormat.yMd()
-                                                            .format(date)
-                                                            .toString(),
-                                                        style: const TextStyle(
-                                                          color: Colors.grey,
-                                                        ))
+                                                      text: DateFormat.yMd()
+                                                          .format(date)
+                                                          .toString(),
+                                                    )
                                                   ]),
                                             ),
                                             const SizedBox(
@@ -577,14 +534,19 @@ class _ToDoListState extends State<ToDoList> {
                                                   text: 'Time: ',
                                                   style: Theme.of(context)
                                                       .textTheme
-                                                      .titleMedium,
+                                                      .titleMedium
+                                                      ?.copyWith(
+                                                        color: Theme.of(context)
+                                                                    .brightness ==
+                                                                Brightness.light
+                                                            ? Colors.grey
+                                                            : Colors.white,
+                                                      ),
                                                   children: <TextSpan>[
                                                     TextSpan(
-                                                        text:
-                                                            '${time != null ? _formatTime(time) : ''}',
-                                                        style: const TextStyle(
-                                                          color: Colors.grey,
-                                                        ))
+                                                      text:
+                                                          '${time != null ? _formatTime(time) : ''}',
+                                                    ),
                                                   ]),
                                             ),
                                           ],
